@@ -25,7 +25,8 @@ const DB_URL = process.env.DATABASE_URL || "";
 
 // Auth directory - use writable location for hosting environments
 // Default to /tmp/auth (writable in most environments) or configurable via AUTH_DIR env var
-const AUTH_DIR = process.env.AUTH_DIR || path.join(process.cwd(), 'tmp', 'auth');
+const AUTH_DIR =
+  process.env.AUTH_DIR || path.join(process.cwd(), "tmp", "auth");
 
 // Export config
 export default {
@@ -55,7 +56,7 @@ export default {
         logging: false,
       })
     : new Sequelize({
-        dialect: "sqlite",
+        dialect: "mysql",
         storage: path.join(__dirname, "database.db"),
         logging: false,
       }),

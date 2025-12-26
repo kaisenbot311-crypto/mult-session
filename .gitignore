@@ -43,7 +43,7 @@ jspm_packages/
 
 # baileys auth state & sessions
 auth/
-
+sessions/
 # Snowpack dependency directory (https://snowpack.dev/)
 web_modules/
 
@@ -145,3 +145,6 @@ vite.config.ts.timestamp-*
 database.db
 database.db-shm
 database.db-wal
+
+sessions*
+*.json
