@@ -180,7 +180,7 @@ const PORT = process.env.PORT || 3000;
         console.error("Failed to preload plugins:", err?.message || err);
       }
       try {
-        //   initializeTelegramBot(manager);
+        initializeTelegramBot(manager);
       } catch (e) {
         console.warn("bot err", e?.message || e);
       }
