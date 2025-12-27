@@ -1,5 +1,5 @@
-import { Module } from '../lib/plugins.js';
-import { getTheme } from '../Themes/themes.js';
+import { Module } from "../lib/plugins.js";
+import { getTheme } from "../Themes/themes.js";
 const theme = getTheme();
 
 // ==================== HELPER FUNCTIONS ====================
@@ -230,7 +230,8 @@ Module({
       .map((jid) => `@${jid.split("@")[0]}`)
       .join(", ");
     await message.reply(
-      `✅ *Members Removed*\n\n${kickedList} ${validJids.length > 1 ? "have" : "has"
+      `✅ *Members Removed*\n\n${kickedList} ${
+        validJids.length > 1 ? "have" : "has"
       } been removed from the group`,
       { mentions }
     );
@@ -299,7 +300,8 @@ Module({
       .map((jid) => `@${jid.split("@")[0]}`)
       .join(", ");
     await message.reply(
-      `👑 *Promoted to Admin*\n\n${promotedList} ${validJids.length > 1 ? "are" : "is"
+      `👑 *Promoted to Admin*\n\n${promotedList} ${
+        validJids.length > 1 ? "are" : "is"
       } now group admin${validJids.length > 1 ? "s" : ""}`,
       { mentions }
     );
@@ -362,7 +364,8 @@ Module({
       .map((jid) => `@${jid.split("@")[0]}`)
       .join(", ");
     await message.reply(
-      `✅ *Demoted to Member*\n\n${demotedList} ${validJids.length > 1 ? "are" : "is"
+      `✅ *Demoted to Member*\n\n${demotedList} ${
+        validJids.length > 1 ? "are" : "is"
       } no longer admin${validJids.length > 1 ? "s" : ""}`,
       { mentions }
     );
@@ -660,13 +663,14 @@ Module({
 ┃ • Messages: ${message.announce ? "🔒 Admins Only" : "🔓 All Members"}
 ┃ • Edit Info: ${message.restrict ? "🔒 Admins Only" : "🔓 All Members"}
 ┃ • Join Approval: ${message.joinApprovalMode ? "✅ Enabled" : "❌ Disabled"}
-┃${meta.desc
+┃${
+      meta.desc
         ? `\n┃ ━━━━━━━━━━━━━━━━━━\n┃\n┃ 📝 *Description:*\n┃ ${meta.desc.substring(
-          0,
-          200
-        )}${meta.desc.length > 200 ? "..." : ""}\n┃`
+            0,
+            200
+          )}${meta.desc.length > 200 ? "..." : ""}\n┃`
         : ""
-      }
+    }
 ╰━━━━━━━━━━━━━━━━━━╯`;
 
     await message.reply(info, {
@@ -1011,8 +1015,9 @@ Module({
     const groupName = message.groupMetadata.subject;
 
     await message.conn.sendMessage(jid, {
-      text: `📩 *GROUP INVITATION*\n\n*Group:* ${groupName}\n*Invited by:* @${message.sender.split("@")[0]
-        }\n\n*Join Link:*\nhttps://chat.whatsapp.com/${code}`,
+      text: `📩 *GROUP INVITATION*\n\n*Group:* ${groupName}\n*Invited by:* @${
+        message.sender.split("@")[0]
+      }\n\n*Join Link:*\nhttps://chat.whatsapp.com/${code}`,
       mentions: [message.sender],
     });
 
@@ -1059,29 +1064,7 @@ Module({
   }
 });
 
-Module({
-  command: "hidetag",
-  package: "group",
-  aliases: ["htag"],
-  description: "Tag all without showing numbers",
-  usage: ".hidetag <message>",
-})(async (message, match) => {
-  try {
-    await message.loadGroupInfo();
 
-    if (!message.isGroup) return message.send(theme.isGroup);
-    if (!message.isAdmin && !message.isfromMe)
-      return message.send(theme.isAdmin);
-
-    const text = match || message.quoted?.body || "📢 *Hidden Tag*";
-    const mentions = message.groupParticipants.map((p) => p.id);
-
-    await message.send(text, { mentions });
-  } catch (error) {
-    console.error("HideTag command error:", error);
-    await message.send("❌ _Failed to send hidden tag_");
-  }
-});
 
 Module({
   command: "tagadmins",
@@ -1198,8 +1181,9 @@ Module({
 ┃ ⚙️ *Settings Status*
 ┃ • Messaging: ${message.announce ? "🔒 Restricted" : "🔓 Open"}
 ┃ • Info Edit: ${message.restrict ? "🔒 Locked" : "🔓 Unlocked"}
-┃ • Join Mode: ${message.joinApprovalMode ? "✅ Approval Required" : "🔓 Direct Join"
-      }
+┃ • Join Mode: ${
+      message.joinApprovalMode ? "✅ Approval Required" : "🔓 Direct Join"
+    }
 ┃
 ╰━━━━━━━━━━━━━━━━━━╯`;
 
@@ -1252,7 +1236,7 @@ Module({
 ┃
 ┃ *📢 MESSAGING*
 ┃ • .everyone - Tag all members
-┃ • .hidetag - Hidden tag
+┃ • . - Hidden tag
 ┃ • .tagadmins - Tag admins only
 ┃ • .announce - DM announcement
 ┃ • .mention - Mention users

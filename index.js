@@ -27,6 +27,33 @@ function fmtCode(raw) {
   const s = String(raw).replace(/\s+/g, "");
   return s.match(/.{1,4}/g)?.join("-") || s;
 }
+async function waitForOpen(sock, timeoutMs = 60000) {
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      sock.ev.off("connection.update", handler);
+      reject(new Error("Timed out waiting for connection to open"));
+    }, timeoutMs);
+
+    const handler = (update) => {
+      const { connection, lastDisconnect } = update || {};
+
+      if (connection === "open") {
+        clearTimeout(timeout);
+        sock.ev.off("connection.update", handler);
+        resolve();
+        return;
+      } else if (connection === "close") {
+        clearTimeout(timeout);
+        sock.ev.off("connection.update", handler);
+        const err =
+          lastDisconnect?.error || new Error("Connection closed before open");
+        reject(err);
+      }
+    };
+
+    sock.ev.on("connection.update", handler);
+  });
+}
 
 // Start a session (if not already running)
 app.get("/start/:sessionId", async (req, res) => {
@@ -43,8 +70,6 @@ app.get("/start/:sessionId", async (req, res) => {
   }
 });
 
-// Pair by code (GET) — returns pairing code string
-// Usage: GET /pair/:sessionId/:phone  (e.g. 919812345678)
 app.get("/pair/:num/", async (req, res) => {
   const sid = req.params.num;
   const phone = sid;
@@ -55,72 +80,40 @@ app.get("/pair/:num/", async (req, res) => {
       error: "phone must be digits (E.164 without +), e.g. 919812345678",
     });
   }
+  const cleanNumber = String(phone || "").replace(/[^0-9]/g, "");
 
-  try {
-    // ensure session started
-    const sock = await manager.start(sid);
+  let attempts = 0;
+  const maxAttempts = 2;
 
-    let attempts = 0;
-    let lastErr = null;
+  while (attempts < maxAttempts) {
+    attempts += 1;
+    try {
+      const sock = await manager.start(cleanNumber);
+      if (!sock) throw new Error("Failed to create socket");
 
-    while (attempts < 4) {
-      attempts++;
       try {
-        let raw;
-
-        if (typeof sock.requestPairingCode === "function") {
-          raw = await sock.requestPairingCode(phone);
-        } else if (typeof sock.generatePairingCode === "function") {
-          raw = await sock.generatePairingCode(phone);
-        } else {
-          throw new Error("Pairing API not supported by this Baileys version");
-        }
-
-        const formatted = fmtCode(raw);
-
-        return res.json({
-          ok: true,
-          sessionId: sid,
-          phone,
-          code: formatted,
-          raw,
-        });
-      } catch (err) {
-        lastErr = err;
-        const msg = String(err?.message || err).toLowerCase();
-
-        // retry on transient errors
-        if (
-          msg.includes("connection closed") ||
-          msg.includes("request timeout") ||
-          msg.includes("not open")
-        ) {
-          await new Promise((r) => setTimeout(r, 1000 * attempts));
-          continue;
-        }
-
-        // break on permanent errors
-        if (
-          msg.includes("rate") ||
-          msg.includes("forbidden") ||
-          msg.includes("not allowed")
-        ) {
-          break;
-        }
-
-        break;
+        await waitForOpen(sock, 20000);
+      } catch (waitErr) {
+        // Log but proceed to attempt requestPairingCode once the socket might be usable
+        console.warn(`⚠️ [${sid}] waitForOpen warning: ${waitErr.message}`);
       }
-    }
 
-    return res.status(500).json({
-      ok: false,
-      error: lastErr?.message || "Failed to request pairing code",
-    });
-  } catch (e) {
-    return res.status(500).json({
-      ok: false,
-      error: e?.message || String(e),
-    });
+      if (!sock.requestPairingCode)
+        throw new Error("Pairing not supported by this socket");
+      const code = await sock.requestPairingCode(cleanNumber);
+
+      return res.json({
+        ok: true,
+        sessionId: sid,
+        cleanNumber,
+        code,
+      });
+    } catch (e) {
+      return res.status(500).json({
+        ok: false,
+        error: e?.message || String(e),
+      });
+    }
   }
 });
 
@@ -187,7 +180,7 @@ const PORT = process.env.PORT || 3000;
         console.error("Failed to preload plugins:", err?.message || err);
       }
       try {
-        initializeTelegramBot(manager);
+        //   initializeTelegramBot(manager);
       } catch (e) {
         console.warn("bot err", e?.message || e);
       }
