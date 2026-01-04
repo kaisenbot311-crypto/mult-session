@@ -1,7 +1,6 @@
 import { existsSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { Sequelize } from "sequelize";
 import dotenv from "dotenv";
 
 // Paths
@@ -44,20 +43,4 @@ export default {
   WORK_TYPE: process.env.WORK_TYPE || "public",
   STATUS_REACT: isTrue(process.env.STATUS_REACT) || false,
   AUTH_DIR,
-  DATABASE: DB_URL
-    ? new Sequelize(DB_URL, {
-        dialect: "postgres",
-        ssl: true,
-        protocol: "postgres",
-        dialectOptions: {
-          native: true,
-          ssl: { require: true, rejectUnauthorized: false },
-        },
-        logging: false,
-      })
-    : new Sequelize({
-        dialect: "mysql",
-        storage: path.join(__dirname, "database.db"),
-        logging: false,
-      }),
 };
